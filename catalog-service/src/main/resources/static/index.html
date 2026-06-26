@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Catalog Service API Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        .item-card { border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 4px; background-color: #f9f9f9; }
+        .error-banner { display: none; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; margin-bottom: 15px; border-radius: 4px; white-space: pre-line; }
+    </style>
+</head>
+<body>
+
+    <h2>📦 Catalog Service API Tester</h2>
+    
+    <div id="errorBanner" class="error-banner" role="alert"></div>
+
+    <form id="itemForm" novalidate>
+        <div class="form-group">
+            <label for="name">Item Name:</label>
+            <input type="text" id="name" placeholder="Leave empty to test @NotBlank">
+        </div>
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="text" id="price" placeholder="e.g., -5.00 or 'abc' to test validation">
+        </div>
+        <button type="submit" id="submitBtn">Send Payload to Backend</button>
+    </form>
+
+    <hr>
+
+    <h3>Current Inventory</h3>
+    <button id="refreshBtn" style="background-color: #007bff;">🔄 Refresh List</button>
+    <div id="itemList"></div>
+
+    <script>
+        const API_CONFIG = {
+            BASE_URL: '/items',
+            HEADERS: { 'Content-Type': 'application/json' }
+        };
+
+        const elements = {
+            form: document.getElementById('itemForm'),
+            nameInput: document.getElementById('name'),
+            priceInput: document.getElementById('price'),
+            submitBtn: document.getElementById('submitBtn'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            itemList: document.getElementById('itemList'),
+            errorBanner: document.getElementById('errorBanner')
+        };
+
+        const UI = {
+            showError(message) {
+                elements.errorBanner.style.display = 'block';
+                elements.errorBanner.textContent = `⚠️ Backend Rejected Request:\n${message}`;
+            },
+            clearError() {
+                elements.errorBanner.style.display = 'none';
+                elements.errorBanner.textContent = '';
+            },
+            setLoading(isLoading) {
+                elements.submitBtn.disabled = isLoading;
+                elements.submitBtn.textContent = isLoading ? 'Waiting for Server...' : 'Send Payload to Backend';
+            }
+        };
+
+        const CatalogService = {
+            async getAllItems() {
+                // Hits GET /items exactly as declared in your Catalog_controller
+                const response = await fetch(API_CONFIG.BASE_URL);
+                if (!response.ok) throw new Error('Failed to retrieve inventory data.');
+                return response.json();
+            },
+
+            async createItem(itemPayload) {
+                // Hits POST /items exactly as declared in your Catalog_controller
+                const response = await fetch(API_CONFIG.BASE_URL, {
+                    method: 'POST',
+                    headers: API_CONFIG.HEADERS,
+                    body: JSON.stringify(itemPayload)
+                });
+
+                if (!response.ok) {
+                    const errorDetails = await response.json().catch(() => ({}));
+                    
+                    // Extracts either your custom DTO message or the Enterprise error detail message
+                    const serverErrorMessage = errorDetails.message || errorDetails.detail || 'An unexpected server error occurred.';
+                    
+                    throw {
+                        status: response.status,
+                        message: serverErrorMessage
+                    };
+                }
+                return response.json();
+            }
+        };
+
+        async function handleFetchItems() {
+            try {
+                const items = await CatalogService.getAllItems();
+                elements.itemList.innerHTML = items.length === 0 
+                    ? '<p>No items found in database.</p>' 
+                    : items.map(item => `
+                        <div class="item-card">
+                            <strong>ID ${item.id}:</strong> ${item.name} - $${item.price ? Number(item.price).toFixed(2) : '0.00'}
+                        </div>
+                    `).join('');
+            } catch (err) {
+                UI.showError(err.message);
+            }
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Securely prevents form tracking navigation loops
+            UI.clearError();
+            UI.setLoading(true);
+
+            const rawName = elements.nameInput.value;
+            const rawPrice = elements.priceInput.value.trim();
+
+            let formattedPrice = null;
+            if (rawPrice !== "") {
+                // If it's a string like "mc", we pass it raw so your backend throws the type validation error
+                formattedPrice = isNaN(rawPrice) ? rawPrice : parseFloat(rawPrice);
+            }
+
+            const itemPayload = {
+                name: rawName === "" ? null : rawName,
+                price: formattedPrice
+            };
+
+            try {
+                await CatalogService.createItem(itemPayload);
+                elements.form.reset();
+                await handleFetchItems(); 
+            } catch (error) {
+                // Renders the error beautifully inside your HTML banner instead of crashing
+                UI.showError(error.message);
+            } finally {
+                UI.setLoading(false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            elements.form.addEventListener('submit', handleFormSubmit);
+            elements.refreshBtn.addEventListener('click', handleFetchItems);
+            handleFetchItems();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: catalog_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password_here
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5432:5432"

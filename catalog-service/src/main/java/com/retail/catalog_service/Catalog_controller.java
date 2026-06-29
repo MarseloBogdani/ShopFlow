@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -38,6 +39,13 @@ public class Catalog_controller {
     @PostMapping("/items") 
     public Item addItem(@Valid @RequestBody Item newItem){
         return itemService.addItem(newItem);
+    }
+
+    @PostMapping("/items/{id}/deduct")
+    public ResponseEntity<Item> deductStock(@PathVariable Integer id, @RequestParam Integer quantity) {
+        Item updatedItem = itemService.deductStock(id, quantity);
+        return ResponseEntity.ok(updatedItem);
+
     }
 
     @PutMapping("/items/update/{id}")

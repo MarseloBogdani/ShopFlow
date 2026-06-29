@@ -1,10 +1,11 @@
 package com.retail.catalog_service;
 
-import java.util.InputMismatchException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +13,7 @@ import com.retail.catalog_service.catalog_exceptions.ConflictException;
 import com.retail.catalog_service.catalog_exceptions.ResourceNotFoundException;
 
 @Service
-public class ItemService {;
+public class ItemService {
     private final ItemRepository itemRepository;
 
     @Autowired
@@ -46,6 +47,7 @@ public class ItemService {;
 
         my_item.setName(newItem.getName());
         my_item.setPrice(newItem.getPrice());
+        my_item.setStock(newItem.getStock());
         
         return itemRepository.save(my_item);
     }
@@ -60,4 +62,19 @@ public class ItemService {;
         }
     }
 
+    @Transactional
+    public Item deductStock(Integer id, Integer quantityToDeduct) {
+        if (quantityToDeduct == null || quantityToDeduct <= 0) {
+            throw new IllegalArgumentException("Deduct quantity must be a positive integer");
+        }
+
+        Item item = getItemById(id);
+        
+        if (item.getStock() <= quantityToDeduct) {
+            throw new ConflictException("Insufficient stock for item: " + item.getName() + ". Available: " + item.getStock());
+        }
+        
+        item.setStock(item.getStock() - quantityToDeduct);
+        return itemRepository.save(item);
+    }
 }

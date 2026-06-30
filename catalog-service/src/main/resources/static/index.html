@@ -611,10 +611,6 @@
                 notify.clear();
                 const id = elements.deductId.value;
                 const qty = elements.deductQty.value;
-                if (!id || !qty) {
-                    notify.error("Please supply both an Item ID and a Quantity amount.");
-                    return;
-                }
                 try {
                     const updatedItem = await API.deduct(id, qty);
                     const itemStock = updatedItem.stock !== undefined ? updatedItem.stock : (updatedItem.quantity !== undefined ? updatedItem.quantity : 'Updated');

@@ -1,5 +1,5 @@
 package com.retail.catalog_service.Seed;
-/*
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.retail.catalog_service.Entities.Item;
+import com.retail.catalog_service.Repositories.ItemRepository;
 
 @Configuration
 public class SeedDataConfig {
@@ -50,4 +53,4 @@ public class SeedDataConfig {
         };
     }
 }
-*/
+

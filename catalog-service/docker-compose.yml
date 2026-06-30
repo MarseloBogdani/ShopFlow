@@ -10,3 +10,14 @@ services:
       POSTGRES_DB: catalog_db
     ports:
       - "5432:5432"
+
+  app:
+    build: .  
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db    
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/catalog_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=your_password_here

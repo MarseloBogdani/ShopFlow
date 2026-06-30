@@ -2,155 +2,635 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Catalog Service API Tester</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalog Service Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #16a34a;
+            --success-hover: #15803d;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --warning: #ea580c;
+            --warning-hover: #c2410c;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+
+        h2, h3 { margin-top: 0; color: #0f172a; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        .item-card { border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 4px; background-color: #f9f9f9; }
-        .error-banner { display: none; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 10px; margin-bottom: 15px; border-radius: 4px; white-space: pre-line; }
+        .form-inline { 
+            display: flex; 
+            gap: 10px; 
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .form-inline .form-group { margin-bottom: 0; flex: 1; min-width: 120px; }
+
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
+        input { 
+            width: 100%; 
+            padding: 8px 12px; 
+            box-sizing: border-box; 
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        input:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+
+        button { 
+            padding: 9px 16px; 
+            color: white; 
+            border: none; 
+            border-radius: 6px;
+            cursor: pointer; 
+            font-weight: 500;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.15s ease;
+        }
+        button:disabled {
+            background-color: #cbd5e1 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed;
+        }
+        .btn-primary { background-color: var(--primary); }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { background-color: var(--success-hover); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+        .btn-warning { background-color: var(--warning); }
+        .btn-warning:hover { background-color: var(--warning-hover); }
+
+        .notification { 
+            display: none; 
+            padding: 12px 16px; 
+            margin-bottom: 20px; 
+            border-radius: 6px; 
+            white-space: pre-line;
+            font-size: 14px;
+        }
+        .notification.error { color: #7f1d1d; background-color: #fef2f2; border: 1px solid #fca5a5; }
+        .notification.success { color: #14532d; background-color: #f0fdf4; border: 1px solid #bbf7d0; }
+
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border); }
+        th { background-color: #f1f5f9; font-weight: 600; }
+        
+        .actions-cell { display: flex; gap: 8px; }
+        .badge {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .badge-stock { background: #dbeafe; color: #1e40af; font-weight: 600; }
+        .badge-out { background: #fee2e2; color: #991b1b; font-weight: 600; }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+        }
+        .pagination-controls { display: flex; gap: 5px; align-items: center; }
+        .page-info { color: #64748b; }
+
+        /* Unified Multi-Filter Panel Layout */
+        .filter-panel {
+            background: #f8fafc;
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 15px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .filter-row:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
 
-    <h2>📦 Catalog Service API Tester</h2>
+    <h2>📦 Catalog Service Admin Dashboard</h2>
     
-    <div id="errorBanner" class="error-banner" role="alert"></div>
+    <div id="notificationBanner" class="notification" role="alert"></div>
 
-    <form id="itemForm" novalidate>
-        <div class="form-group">
-            <label for="name">Item Name:</label>
-            <input type="text" id="name" placeholder="Leave empty to test @NotBlank">
+    <div class="dashboard-grid">
+        
+        <div class="card">
+            <h3 id="formTitle">Add New Item</h3>
+            <form id="itemForm" novalidate>
+                <input type="hidden" id="itemId">
+                <div class="form-group">
+                    <label for="name">Item Name:</label>
+                    <input type="text" id="name" placeholder="e.g., Wireless Mouse">
+                </div>
+                <div class="form-group">
+                    <label for="price">Price ($):</label>
+                    <input type="text" id="price" placeholder="e.g., 29.99">
+                </div>
+                <div class="form-group">
+                    <label for="stock">Initial Stock Level:</label>
+                    <input type="number" id="stock" placeholder="e.g., 100">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" id="submitBtn" class="btn-success">Save Item</button>
+                    <button type="button" id="cancelEditBtn" class="btn-danger" style="display: none;">Cancel Edit</button>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-            <label for="price">Price:</label>
-            <input type="text" id="price" placeholder="e.g., -5.00 or 'abc' to test validation">
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+                <h3>Find Item by ID</h3>
+                <div class="form-inline">
+                    <div class="form-group">
+                        <input type="number" id="searchId" placeholder="ID">
+                    </div>
+                    <button type="button" id="searchBtn" class="btn-primary">Find</button>
+                </div>
+                <div id="searchResult" style="margin-top: 10px; font-size: 14px;"></div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); width: 100%; margin: 0;">
+
+            <div>
+                <h3>Deduct Stock</h3>
+                <div class="form-inline">
+                    <div class="form-group">
+                        <label for="deductId">Item ID</label>
+                        <input type="number" id="deductId" placeholder="ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="deductQty">Qty to Deduct</label>
+                        <input type="number" id="deductQty" placeholder="Amount">
+                    </div>
+                    <button type="button" id="deductBtn" class="btn-warning">Deduct</button>
+                </div>
+            </div>
         </div>
-        <button type="submit" id="submitBtn">Send Payload to Backend</button>
-    </form>
 
-    <hr>
+        <div class="card full-width">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h3>Current Inventory</h3>
+                <button id="refreshBtn" class="btn-primary">🔄 Refresh Inventory</button>
+            </div>
 
-    <h3>Current Inventory</h3>
-    <button id="refreshBtn" style="background-color: #007bff;">🔄 Refresh List</button>
-    <div id="itemList"></div>
+            <div class="filter-panel">
+                <div style="font-weight: 600; font-size: 14px; color: #475569; margin-bottom: 10px;">🔍 Advanced Catalog Filters</div>
+                
+                <div class="filter-row">
+                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
+                        <label for="filterMinStock" style="font-size: 12px; color: #64748b;">Min Stock</label>
+                        <input type="number" id="filterMinStock" placeholder="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
+                        <label for="filterMaxStock" style="font-size: 12px; color: #64748b;">Max Stock</label>
+                        <input type="number" id="filterMaxStock" placeholder="Max">
+                    </div>
+                    <button type="button" id="applyStockFilterBtn" class="btn-primary" style="padding: 8px 12px; font-size: 12px;">Filter by Stock</button>
+                </div>
+
+                <div class="filter-row" style="border-top: 1px solid var(--border); padding-top: 12px;">
+                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
+                        <label for="filterMinPrice" style="font-size: 12px; color: #64748b;">Min Price ($)</label>
+                        <input type="number" id="filterMinPrice" placeholder="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
+                        <label for="filterMaxPrice" style="font-size: 12px; color: #64748b;">Max Price ($)</label>
+                        <input type="number" id="filterMaxPrice" placeholder="Max">
+                    </div>
+                    <button type="button" id="applyPriceFilterBtn" class="btn-primary" style="padding: 8px 12px; font-size: 12px; background-color: #0284c7;">Filter by Price</button>
+                    <button type="button" id="clearFiltersBtn" class="btn-danger" style="padding: 8px 12px; font-size: 12px; background-color: #64748b; margin-left: auto;">Reset All</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Available Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #64748b;">Loading catalog items...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container">
+                <div class="page-info" id="paginationInfo">Showing 0 of 0 items</div>
+                <div class="pagination-controls">
+                    <button id="prevPageBtn" class="btn-primary" style="padding: 6px 12px;">◀ Prev</button>
+                    <span id="currentPageLabel" style="font-weight: 600; padding: 0 5px;">Page 1</span>
+                    <button id="nextPageBtn" class="btn-primary" style="padding: 6px 12px;">Next ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const API_CONFIG = {
-            BASE_URL: '/items',
-            HEADERS: { 'Content-Type': 'application/json' }
-        };
+        const API_BASE = '/items';
+        
+        let currentPage = 0;
+        const pageSize = 5;
+        
+        // Active mode toggle configuration framework
+        let activeFilterMode = 'NONE'; // Can be 'NONE', 'STOCK', or 'PRICE'
 
         const elements = {
+            notification: document.getElementById('notificationBanner'),
             form: document.getElementById('itemForm'),
+            formTitle: document.getElementById('formTitle'),
+            itemId: document.getElementById('itemId'),
             nameInput: document.getElementById('name'),
             priceInput: document.getElementById('price'),
+            stockInput: document.getElementById('stock'),
             submitBtn: document.getElementById('submitBtn'),
+            cancelEditBtn: document.getElementById('cancelEditBtn'),
+            
+            searchId: document.getElementById('searchId'),
+            searchBtn: document.getElementById('searchBtn'),
+            searchResult: document.getElementById('searchResult'),
+            
+            deductId: document.getElementById('deductId'),
+            deductQty: document.getElementById('deductQty'),
+            deductBtn: document.getElementById('deductBtn'),
+            
             refreshBtn: document.getElementById('refreshBtn'),
-            itemList: document.getElementById('itemList'),
-            errorBanner: document.getElementById('errorBanner')
+            tableBody: document.getElementById('inventoryTableBody'),
+            
+            prevPageBtn: document.getElementById('prevPageBtn'),
+            nextPageBtn: document.getElementById('nextPageBtn'),
+            currentPageLabel: document.getElementById('currentPageLabel'),
+            paginationInfo: document.getElementById('paginationInfo'),
+
+            // Filters DOM mapping
+            filterMinStock: document.getElementById('filterMinStock'),
+            filterMaxStock: document.getElementById('filterMaxStock'),
+            filterMinPrice: document.getElementById('filterMinPrice'),
+            filterMaxPrice: document.getElementById('filterMaxPrice'),
+            applyStockFilterBtn: document.getElementById('applyStockFilterBtn'),
+            applyPriceFilterBtn: document.getElementById('applyPriceFilterBtn'),
+            clearFiltersBtn: document.getElementById('clearFiltersBtn')
         };
 
-        const UI = {
-            showError(message) {
-                elements.errorBanner.style.display = 'block';
-                elements.errorBanner.textContent = `⚠️ Backend Rejected Request:\n${message}`;
+        const notify = {
+            error(msg) {
+                elements.notification.className = "notification error";
+                elements.notification.style.display = "block";
+                elements.notification.textContent = `⚠️ Error: ${msg}`;
             },
-            clearError() {
-                elements.errorBanner.style.display = 'none';
-                elements.errorBanner.textContent = '';
+            success(msg) {
+                elements.notification.className = "notification success";
+                elements.notification.style.display = "block";
+                elements.notification.textContent = `✅ ${msg}`;
+                setTimeout(() => elements.notification.style.display = "none", 4000);
             },
-            setLoading(isLoading) {
-                elements.submitBtn.disabled = isLoading;
-                elements.submitBtn.textContent = isLoading ? 'Waiting for Server...' : 'Send Payload to Backend';
+            clear() {
+                elements.notification.style.display = "none";
             }
         };
 
-        const CatalogService = {
-            async getAllItems() {
-                // Hits GET /items exactly as declared in your Catalog_controller
-                const response = await fetch(API_CONFIG.BASE_URL);
-                if (!response.ok) throw new Error('Failed to retrieve inventory data.');
-                return response.json();
-            },
-
-            async createItem(itemPayload) {
-                // Hits POST /items exactly as declared in your Catalog_controller
-                const response = await fetch(API_CONFIG.BASE_URL, {
-                    method: 'POST',
-                    headers: API_CONFIG.HEADERS,
-                    body: JSON.stringify(itemPayload)
-                });
-
+        const API = {
+            async handleResponse(response) {
                 if (!response.ok) {
-                    const errorDetails = await response.json().catch(() => ({}));
-                    
-                    // Extracts either your custom DTO message or the Enterprise error detail message
-                    const serverErrorMessage = errorDetails.message || errorDetails.detail || 'An unexpected server error occurred.';
-                    
-                    throw {
-                        status: response.status,
-                        message: serverErrorMessage
-                    };
+                    const contentType = response.headers.get("content-type");
+                    let errMsg = "An unknown server error occurred.";
+                    if (contentType && contentType.includes("application/json")) {
+                        const errDetails = await response.json();
+                        errMsg = errDetails.message || errDetails.detail || errMsg;
+                    } else {
+                        errMsg = await response.text() || errMsg;
+                    }
+                    throw new Error(errMsg);
                 }
-                return response.json();
+                const text = await response.text();
+                return text ? JSON.parse(text) : null;
+            },
+
+            async getAll(page = 0, size = 5) {
+                const res = await fetch(`${API_BASE}?page=${page}&size=${size}`);
+                return this.handleResponse(res);
+            },
+
+            async getByStockRange(minStock, maxStock, page = 0, size = 5) {
+                const res = await fetch(`${API_BASE}/by-stock-range?minStock=${minStock}&maxStock=${maxStock}&page=${page}&size=${size}`);
+                return this.handleResponse(res);
+            },
+
+            // New API execution pipeline hitting your custom @GetMapping("items/by-price-range") handler
+            async getByPriceRange(minPrice, maxPrice, page = 0, size = 5) {
+                const res = await fetch(`${API_BASE}/by-price-range?minPrice=${minPrice}&maxPrice=${maxPrice}&page=${page}&size=${size}`);
+                return this.handleResponse(res);
+            },
+
+            async getOne(id) {
+                const res = await fetch(`${API_BASE}/${id}`);
+                return this.handleResponse(res);
+            },
+
+            async create(payload) {
+                const res = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                return this.handleResponse(res);
+            },
+
+            async update(id, payload) {
+                const res = await fetch(`${API_BASE}/update/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                return this.handleResponse(res);
+            },
+
+            async deduct(id, quantity) {
+                const res = await fetch(`${API_BASE}/${id}/deduct?quantity=${quantity}`, {
+                    method: 'POST'
+                });
+                return this.handleResponse(res);
+            },
+
+            async delete(id) {
+                const res = await fetch(`${API_BASE}/delete/${id}`, {
+                    method: 'DELETE'
+                });
+                return this.handleResponse(res);
             }
         };
 
-        async function handleFetchItems() {
+        async function loadInventory() {
             try {
-                const items = await CatalogService.getAllItems();
-                elements.itemList.innerHTML = items.length === 0 
-                    ? '<p>No items found in database.</p>' 
-                    : items.map(item => `
-                        <div class="item-card">
-                            <strong>ID ${item.id}:</strong> ${item.name} - $${item.price ? Number(item.price).toFixed(2) : '0.00'}
-                        </div>
-                    `).join('');
+                let data;
+                
+                // Evaluated route management mapping rules
+                if (activeFilterMode === 'STOCK') {
+                    const min = elements.filterMinStock.value || 0;
+                    const max = elements.filterMaxStock.value || 2147483647;
+                    data = await API.getByStockRange(min, max, currentPage, pageSize);
+                } else if (activeFilterMode === 'PRICE') {
+                    const min = elements.filterMinPrice.value || 0;
+                    const max = elements.filterMaxPrice.value || 2147483647;
+                    data = await API.getByPriceRange(min, max, currentPage, pageSize);
+                } else {
+                    data = await API.getAll(currentPage, pageSize);
+                }
+                
+                const items = data.content !== undefined ? data.content : data;
+                const totalElements = data.totalElements !== undefined ? data.totalElements : items.length;
+                const totalPages = data.totalPages !== undefined ? data.totalPages : 1;
+
+                if (!items || items.length === 0) {
+                    elements.tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No items matched current filter metrics.</td></tr>`;
+                    updatePaginationUI(0, totalElements, totalPages);
+                    return;
+                }
+                
+                elements.tableBody.innerHTML = items.map(item => {
+                    const stockValue = item.stock !== undefined ? item.stock : (item.quantity !== undefined ? item.quantity : 0);
+                    const stockBadgeClass = stockValue > 0 ? "badge badge-stock" : "badge badge-out";
+                    const stockText = stockValue > 0 ? stockValue : "Out of stock";
+
+                    return `
+                        <tr>
+                            <td><span class="badge">${item.id}</span></td>
+                            <td><strong>${escapeHtml(item.name || '')}</strong></td>
+                            <td>$${item.price ? Number(item.price).toFixed(2) : '0.00'}</td>
+                            <td><span class="${stockBadgeClass}">${stockText}</span></td>
+                            <td class="actions-cell">
+                                <button onclick="setupEditForm(${item.id}, '${escapeHtml(item.name || '')}', ${item.price || 0}, ${stockValue})" class="btn-primary" style="padding: 5px 10px; font-size:12px;">Edit</button>
+                                <button onclick="handleDeleteItem(${item.id})" class="btn-danger" style="padding: 5px 10px; font-size:12px;">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                updatePaginationUI(currentPage, totalElements, totalPages);
             } catch (err) {
-                UI.showError(err.message);
+                notify.error(err.message);
             }
         }
 
-        async function handleFormSubmit(event) {
-            event.preventDefault(); // Securely prevents form tracking navigation loops
-            UI.clearError();
-            UI.setLoading(true);
+        function updatePaginationUI(current, totalElements, totalPages) {
+            let filterLabelSuffix = '';
+            if (activeFilterMode === 'STOCK') filterLabelSuffix = ' (Stock Filtered)';
+            if (activeFilterMode === 'PRICE') filterLabelSuffix = ' (Price Filtered)';
 
-            const rawName = elements.nameInput.value;
+            elements.currentPageLabel.textContent = `Page ${current + 1} of ${totalPages || 1}`;
+            elements.paginationInfo.textContent = `Total Items Found: ${totalElements}${filterLabelSuffix}`;
+            
+            elements.prevPageBtn.disabled = (current <= 0);
+            elements.nextPageBtn.disabled = (current >= totalPages - 1);
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            notify.clear();
+
+            const id = elements.itemId.value;
+            const name = elements.nameInput.value === "" ? null : elements.nameInput.value;
             const rawPrice = elements.priceInput.value.trim();
+            const price = (rawPrice === "" || isNaN(rawPrice)) ? rawPrice : parseFloat(rawPrice);
+            
+            const rawStock = elements.stockInput.value.trim();
+            const stock = rawStock === "" ? 0 : parseInt(rawStock, 10);
 
-            let formattedPrice = null;
-            if (rawPrice !== "") {
-                // If it's a string like "mc", we pass it raw so your backend throws the type validation error
-                formattedPrice = isNaN(rawPrice) ? rawPrice : parseFloat(rawPrice);
-            }
-
-            const itemPayload = {
-                name: rawName === "" ? null : rawName,
-                price: formattedPrice
-            };
+            const payload = { name, price, stock, quantity: stock };
 
             try {
-                await CatalogService.createItem(itemPayload);
-                elements.form.reset();
-                await handleFetchItems(); 
-            } catch (error) {
-                // Renders the error beautifully inside your HTML banner instead of crashing
-                UI.showError(error.message);
-            } finally {
-                UI.setLoading(false);
+                if (id) {
+                    await API.update(id, payload);
+                    notify.success(`Item ID ${id} updated successfully.`);
+                    resetFormState();
+                } else {
+                    const newItem = await API.create(payload);
+                    notify.success(`Item created successfully with ID: ${newItem.id}`);
+                    elements.form.reset();
+                }
+                await loadInventory();
+            } catch (err) {
+                notify.error(err.message);
+            }
+        }
+
+        function setupEditForm(id, name, price, stock) {
+            notify.clear();
+            elements.formTitle.textContent = `Update Item #${id}`;
+            elements.itemId.value = id;
+            elements.nameInput.value = name;
+            elements.priceInput.value = price;
+            elements.stockInput.value = stock;
+            elements.submitBtn.textContent = "Apply Updates";
+            elements.submitBtn.className = "btn-warning";
+            elements.cancelEditBtn.style.display = "inline-flex";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetFormState() {
+            elements.formTitle.textContent = "Add New Item";
+            elements.itemId.value = "";
+            elements.form.reset();
+            elements.submitBtn.textContent = "Save Item";
+            elements.submitBtn.className = "btn-success";
+            elements.cancelEditBtn.style.display = "none";
+        }
+
+        async function handleDeleteItem(id) {
+            if (!confirm(`Are you sure you want to delete item #${id}?`)) return;
+            notify.clear();
+            try {
+                await API.delete(id);
+                notify.success(`Item #${id} deleted.`);
+                if (elements.itemId.value === String(id)) resetFormState();
+                await loadInventory();
+            } catch (err) {
+                notify.error(err.message);
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadInventory();
+
             elements.form.addEventListener('submit', handleFormSubmit);
-            elements.refreshBtn.addEventListener('click', handleFetchItems);
-            handleFetchItems();
+            elements.cancelEditBtn.addEventListener('click', resetFormState);
+            elements.refreshBtn.addEventListener('click', () => {
+                currentPage = 0;
+                loadInventory();
+            });
+
+            // Stock Filter click listener
+            elements.applyStockFilterBtn.addEventListener('click', () => {
+                activeFilterMode = 'STOCK';
+                currentPage = 0;
+                loadInventory();
+            });
+
+            // Price Filter click listener
+            elements.applyPriceFilterBtn.addEventListener('click', () => {
+                activeFilterMode = 'PRICE';
+                currentPage = 0;
+                loadInventory();
+            });
+
+            // Reset Filter fields action
+            elements.clearFiltersBtn.addEventListener('click', () => {
+                activeFilterMode = 'NONE';
+                elements.filterMinStock.value = '';
+                elements.filterMaxStock.value = '';
+                elements.filterMinPrice.value = '';
+                elements.filterMaxPrice.value = '';
+                currentPage = 0;
+                loadInventory();
+            });
+
+            elements.prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    loadInventory();
+                }
+            });
+
+            elements.nextPageBtn.addEventListener('click', () => {
+                currentPage++;
+                loadInventory();
+            });
+
+            elements.searchBtn.addEventListener('click', async () => {
+                notify.clear();
+                const id = elements.searchId.value;
+                if (!id) return;
+                try {
+                    const item = await API.getOne(id);
+                    const itemStock = item.stock !== undefined ? item.stock : (item.quantity !== undefined ? item.quantity : 0);
+                    elements.searchResult.innerHTML = `
+                        <div style="background: #f1f5f9; padding:10px; border-radius:6px; border-left: 4px solid var(--primary)">
+                            <strong>ID ${item.id}:</strong> ${escapeHtml(item.name || '')} — <strong>$${Number(item.price || 0).toFixed(2)}</strong> (Stock: ${itemStock})
+                        </div>`;
+                } catch (err) {
+                    elements.searchResult.innerHTML = `<span style="color:var(--danger)">⚠️ Error: Not found or invalid request.</span>`;
+                }
+            });
+
+            elements.deductBtn.addEventListener('click', async () => {
+                notify.clear();
+                const id = elements.deductId.value;
+                const qty = elements.deductQty.value;
+                if (!id || !qty) {
+                    notify.error("Please supply both an Item ID and a Quantity amount.");
+                    return;
+                }
+                try {
+                    const updatedItem = await API.deduct(id, qty);
+                    const itemStock = updatedItem.stock !== undefined ? updatedItem.stock : (updatedItem.quantity !== undefined ? updatedItem.quantity : 'Updated');
+                    notify.success(`Successfully deducted stock. ${updatedItem.name || 'Item'} remaining stock level: ${itemStock}`);
+                    elements.deductId.value = "";
+                    elements.deductQty.value = "";
+                    await loadInventory();
+                } catch (err) {
+                    notify.error(err.message);
+                }
+            });
         });
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>

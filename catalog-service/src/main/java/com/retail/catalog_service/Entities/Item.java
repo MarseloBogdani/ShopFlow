@@ -1,4 +1,4 @@
-package com.retail.catalog_service;
+package com.retail.catalog_service.Entities;
 
 import java.math.BigDecimal;
 

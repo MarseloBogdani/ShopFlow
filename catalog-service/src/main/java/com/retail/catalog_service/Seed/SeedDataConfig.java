@@ -1,5 +1,5 @@
+package com.retail.catalog_service.Seed;
 /*
-package com.retail.catalog_service;
 
 import java.math.BigDecimal;
 import java.util.List;

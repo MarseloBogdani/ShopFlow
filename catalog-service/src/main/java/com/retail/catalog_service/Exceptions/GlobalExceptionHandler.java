@@ -1,18 +1,14 @@
-package com.retail.catalog_service;
+package com.retail.catalog_service.Exceptions;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-
-
-import com.retail.catalog_service.catalog_exceptions.ConflictException;
-import com.retail.catalog_service.catalog_exceptions.ResourceNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -22,29 +18,38 @@ public class GlobalExceptionHandler {
     //404
         //Not Found Exception
         @ExceptionHandler(ResourceNotFoundException.class)
-        public ResponseEntity<Catalog_error_response> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        public ResponseEntity<CatalogErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
             return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
         }
+        //
+
+    //END 404
 
     //409   
         //Conflict Exception
         @ExceptionHandler(ConflictException.class)
-        public ResponseEntity<Catalog_error_response> handleConflict(ConflictException ex, HttpServletRequest request) {
+        public ResponseEntity<CatalogErrorResponse> handleConflict(ConflictException ex, HttpServletRequest request) {
             return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
         }
+        //
+
+    //END 409
 
     //500
         //Handle Generic Exception
         @ExceptionHandler(Exception.class)
-        public ResponseEntity<Catalog_error_response> handleGenericException(Exception ex, HttpServletRequest request) {
+        public ResponseEntity<CatalogErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
             System.out.println("!! Exception: " + ex);
             return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
         }
+        //
+    
+    //END 500
 
     //400
         //Handle Jakarta Bean Exception
         @ExceptionHandler(MethodArgumentNotValidException.class)
-        public ResponseEntity<Catalog_error_response> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        public ResponseEntity<CatalogErrorResponse> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
         
             String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
@@ -52,10 +57,11 @@ public class GlobalExceptionHandler {
 
         return buildResponse(HttpStatus.BAD_REQUEST, errorMessage, request);
         }
+        //
 
         //String in Price Exception
         @ExceptionHandler(HttpMessageNotReadableException.class)
-        public ResponseEntity<Catalog_error_response> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        public ResponseEntity<CatalogErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
             
             String errorMessage = "Invalid input format. Please check your data types.";
 
@@ -66,10 +72,22 @@ public class GlobalExceptionHandler {
 
             return buildResponse(HttpStatus.BAD_REQUEST, errorMessage, request);
         }
+        //
+
+        //Handle IllegalArgumentException
+        @ExceptionHandler(IllegalArgumentException.class) 
+        public ResponseEntity<CatalogErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) { 
+            return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+        }
+        //
+
+    //END 400
         
+
+
     //MyHelper
-    private ResponseEntity<Catalog_error_response> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
-        Catalog_error_response error = new Catalog_error_response(
+    private ResponseEntity<CatalogErrorResponse> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
+        CatalogErrorResponse error = new CatalogErrorResponse(
             LocalDateTime.now(),
             status.value(),
             status.getReasonPhrase(),
@@ -78,4 +96,5 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, status);
     }
+    //end Myhelper
 }

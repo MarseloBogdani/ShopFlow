@@ -3,282 +3,550 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catalog Service Admin Dashboard</title>
+    <title>Catalog Service Admin Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --success: #16a34a;
-            --success-hover: #15803d;
-            --danger: #dc2626;
-            --danger-hover: #b91c1c;
-            --warning: #ea580c;
-            --warning-hover: #c2410c;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --border: #e2e8f0;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            
+            --indigo-50: #eep2ff;
+            --indigo-500: #6366f1;
+            --indigo-600: #4f46e5;
+            --indigo-700: #4338ca;
+            
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+            
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+            --rose-950: #4c0519;
+            
+            --amber-500: #f59e0b;
+
+            --bg-main: #f8fafc;
+            --surface-card: #ffffff;
+            --text-primary: var(--slate-900);
+            --text-secondary: var(--slate-500);
+            --border-color: var(--slate-200);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
-        body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--bg);
-            color: var(--text);
-            max-width: 1000px; 
-            margin: 0 auto; 
-            padding: 20px; 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        h2, h3 { margin-top: 0; color: #0f172a; }
-        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+            
+            /* Sticky footer setup */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Add flex: 1 to your dashboard container so it expands to fill available space */
+        .dashboard-grid {
+            flex: 1;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            background: var(--indigo-600);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .brand-title h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-title span {
+            font-size: 0.85rem;
+            color: var(--slate-500);
+            font-weight: 500;
+        }
+
+        /* Notifications & Error Console */
+        .toast-container {
+            margin-bottom: 20px;
+        }
+
+        .toast {
+            display: none;
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toast-success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .toast-error {
+            background-color: #fff1f2;
+            color: #9f1239;
+            border: 1px solid #fecdd3;
+        }
+
+        .error-payload-details {
+            margin-top: 8px;
+            background: var(--slate-900);
+            color: #f87171;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        /* Dashboard Layout Grid */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 24px;
         }
-        @media (min-width: 768px) {
-            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+
+        @media (min-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 360px 1fr;
+            }
         }
 
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .full-width { grid-column: 1 / -1; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-inline { 
-            display: flex; 
-            gap: 10px; 
-            align-items: flex-end;
-            flex-wrap: wrap;
+        .card-header {
+            margin-bottom: 20px;
         }
-        .form-inline .form-group { margin-bottom: 0; flex: 1; min-width: 120px; }
 
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
-        input { 
-            width: 100%; 
-            padding: 8px 12px; 
-            box-sizing: border-box; 
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        input:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
 
-        button { 
-            padding: 9px 16px; 
-            color: white; 
-            border: none; 
-            border-radius: 6px;
-            cursor: pointer; 
-            font-weight: 500;
-            font-size: 14px;
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--slate-700);
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 9px 13px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            color: var(--slate-800);
+            transition: all 0.15s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--indigo-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 9px 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
             gap: 6px;
-            transition: background 0.15s ease;
         }
-        button:disabled {
-            background-color: #cbd5e1 !important;
-            color: #94a3b8 !important;
+
+        .btn:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
         }
-        .btn-primary { background-color: var(--primary); }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-success { background-color: var(--success); }
-        .btn-success:hover { background-color: var(--success-hover); }
-        .btn-danger { background-color: var(--danger); }
-        .btn-danger:hover { background-color: var(--danger-hover); }
-        .btn-warning { background-color: var(--warning); }
-        .btn-warning:hover { background-color: var(--warning-hover); }
 
-        .notification { 
-            display: none; 
-            padding: 12px 16px; 
-            margin-bottom: 20px; 
-            border-radius: 6px; 
-            white-space: pre-line;
-            font-size: 14px;
-        }
-        .notification.error { color: #7f1d1d; background-color: #fef2f2; border: 1px solid #fca5a5; }
-        .notification.success { color: #14532d; background-color: #f0fdf4; border: 1px solid #bbf7d0; }
-
-        .table-container { overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border); }
-        th { background-color: #f1f5f9; font-weight: 600; }
+        .btn-primary { background: var(--indigo-600); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--indigo-700); }
         
-        .actions-cell { display: flex; gap: 8px; }
-        .badge {
-            background: #e2e8f0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-        }
-        .badge-stock { background: #dbeafe; color: #1e40af; font-weight: 600; }
-        .badge-out { background: #fee2e2; color: #991b1b; font-weight: 600; }
+        .btn-success { background: var(--emerald-600); color: white; }
+        .btn-success:hover:not(:disabled) { background: #047857; }
 
-        .pagination-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border);
-            font-size: 14px;
-        }
-        .pagination-controls { display: flex; gap: 5px; align-items: center; }
-        .page-info { color: #64748b; }
+        .btn-warning { background: var(--amber-500); color: white; }
+        .btn-warning:hover:not(:disabled) { background: #d97706; }
 
-        /* Unified Multi-Filter Panel Layout */
+        .btn-danger { background: var(--rose-600); color: white; }
+        .btn-danger:hover:not(:disabled) { background: #be123c; }
+
+        .btn-secondary { background: var(--slate-100); color: var(--slate-700); border: 1px solid var(--slate-200); }
+        .btn-secondary:hover:not(:disabled) { background: var(--slate-200); }
+
+        .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+
+        /* Filter Panel */
         .filter-panel {
-            background: #f8fafc;
-            border: 1px dashed var(--border);
-            border-radius: 6px;
+            background: var(--slate-50);
+            border: 1px dashed var(--slate-300);
+            border-radius: var(--radius-md);
             padding: 16px;
-            margin-top: 15px;
+            margin-bottom: 20px;
         }
-        .filter-row {
-            display: flex;
-            gap: 15px;
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
             align-items: flex-end;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
         }
-        .filter-row:last-child { margin-bottom: 0; }
+
+        /* Data Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        .app-footer {
+            margin-top: auto;
+            padding: 24px 0 8px 0;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .footer-badge {
+            background: var(--slate-100);
+            color: var(--slate-700);
+            border: 1px solid var(--slate-300);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+        }
+
+        .footer-content p {
+            font-size: 0.8125rem;
+            color: var(--slate-500);
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background: var(--slate-50);
+            color: var(--slate-600);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--slate-700);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: var(--slate-50); }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-id { background: var(--slate-100); color: var(--slate-700); font-family: 'JetBrains Mono', monospace; }
+        .badge-in-stock { background: #dcfce7; color: #166534; }
+        .badge-out-stock { background: #ffe4e6; color: #9f1239; }
+
+        /* Pagination Controls */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--slate-500);
+        }
+
+        .pagination-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Divider */
+        .section-divider {
+            border: 0;
+            border-top: 1px solid var(--border-color);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
 
-    <h2>📦 Catalog Service Admin Dashboard</h2>
-    
-    <div id="notificationBanner" class="notification" role="alert"></div>
+    <header>
+        <div class="brand-title">
+            <div class="brand-icon">📦</div>
+            <div>
+                <h1>Catalog Service Admin</h1>
+                <span>Spring Boot Microservice Control Panel</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="toast-container">
+        <div id="notificationBanner" class="toast"></div>
+    </div>
 
     <div class="dashboard-grid">
         
-        <div class="card">
-            <h3 id="formTitle">Add New Item</h3>
-            <form id="itemForm" novalidate>
-                <input type="hidden" id="itemId">
-                <div class="form-group">
-                    <label for="name">Item Name:</label>
-                    <input type="text" id="name" placeholder="e.g., Wireless Mouse">
-                </div>
-                <div class="form-group">
-                    <label for="price">Price ($):</label>
-                    <input type="text" id="price" placeholder="e.g., 29.99">
-                </div>
-                <div class="form-group">
-                    <label for="stock">Initial Stock Level:</label>
-                    <input type="number" id="stock" placeholder="e.g., 100">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" id="submitBtn" class="btn-success">Save Item</button>
-                    <button type="button" id="cancelEditBtn" class="btn-danger" style="display: none;">Cancel Edit</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
-            <div>
-                <h3>Find Item by ID</h3>
-                <div class="form-inline">
-                    <div class="form-group">
-                        <input type="number" id="searchId" placeholder="ID">
-                    </div>
-                    <button type="button" id="searchBtn" class="btn-primary">Find</button>
-                </div>
-                <div id="searchResult" style="margin-top: 10px; font-size: 14px;"></div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid var(--border); width: 100%; margin: 0;">
-
-            <div>
-                <h3>Deduct Stock</h3>
-                <div class="form-inline">
-                    <div class="form-group">
-                        <label for="deductId">Item ID</label>
-                        <input type="number" id="deductId" placeholder="ID">
-                    </div>
-                    <div class="form-group">
-                        <label for="deductQty">Qty to Deduct</label>
-                        <input type="number" id="deductQty" placeholder="Amount">
-                    </div>
-                    <button type="button" id="deductBtn" class="btn-warning">Deduct</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card full-width">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <h3>Current Inventory</h3>
-                <button id="refreshBtn" class="btn-primary">🔄 Refresh Inventory</button>
-            </div>
-
-            <div class="filter-panel">
-                <div style="font-weight: 600; font-size: 14px; color: #475569; margin-bottom: 10px;">🔍 Advanced Catalog Filters</div>
-                
-                <div class="filter-row">
-                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
-                        <label for="filterMinStock" style="font-size: 12px; color: #64748b;">Min Stock</label>
-                        <input type="number" id="filterMinStock" placeholder="0">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
-                        <label for="filterMaxStock" style="font-size: 12px; color: #64748b;">Max Stock</label>
-                        <input type="number" id="filterMaxStock" placeholder="Max">
-                    </div>
-                    <button type="button" id="applyStockFilterBtn" class="btn-primary" style="padding: 8px 12px; font-size: 12px;">Filter by Stock</button>
-                </div>
-
-                <div class="filter-row" style="border-top: 1px solid var(--border); padding-top: 12px;">
-                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
-                        <label for="filterMinPrice" style="font-size: 12px; color: #64748b;">Min Price ($)</label>
-                        <input type="number" id="filterMinPrice" placeholder="0">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
-                        <label for="filterMaxPrice" style="font-size: 12px; color: #64748b;">Max Price ($)</label>
-                        <input type="number" id="filterMaxPrice" placeholder="Max">
-                    </div>
-                    <button type="button" id="applyPriceFilterBtn" class="btn-primary" style="padding: 8px 12px; font-size: 12px; background-color: #0284c7;">Filter by Price</button>
-                    <button type="button" id="clearFiltersBtn" class="btn-danger" style="padding: 8px 12px; font-size: 12px; background-color: #64748b; margin-left: auto;">Reset All</button>
-                </div>
-            </div>
+        <!-- Left Sidebar: Operations Form -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
             
-            <div class="table-container">
+            <!-- Add/Edit Item Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title" id="formTitle">✏️ Add New Item</h3>
+                </div>
+                <form id="itemForm">
+                    <input type="hidden" id="itemId">
+                    
+                    <div class="form-group">
+                        <label for="name">Item Name</label>
+                        <input type="text" id="name" placeholder="e.g., Mechanical Keyboard">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="price">Price ($)</label>
+                        <input type="text" id="price" placeholder="e.g., 89.99">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="stock">Initial Stock</label>
+                        <input type="number" id="stock" placeholder="e.g., 50">
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 20px;">
+                        <button type="submit" id="submitBtn" class="btn btn-success" style="flex: 1;">Save Item</button>
+                        <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Quick Action Operations Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⚡ Quick Actions</h3>
+                </div>
+
+                <!-- Find By ID -->
+                <div>
+                    <label for="searchId">Find Single Item</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="searchId" placeholder="Enter ID">
+                        <button type="button" id="searchBtn" class="btn btn-primary">Find</button>
+                    </div>
+                    <div id="searchResult" style="margin-top: 10px;"></div>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- Stock Deduction -->
+                <div>
+                    <label>Deduct Stock Quantity</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="number" id="deductId" placeholder="ID">
+                            <input type="number" id="deductQty" placeholder="Qty">
+                        </div>
+                        <button type="button" id="deductBtn" class="btn btn-warning">Deduct Stock</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Main Panel: Inventory Table & Filtering -->
+        <div class="card">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="card-title">📋 Live Inventory</h3>
+                <button id="refreshBtn" class="btn btn-secondary btn-sm">🔄 Refresh Data</button>
+            </div>
+
+            <!-- Advanced Filters Container -->
+            <div class="filter-panel">
+                <div style="font-size: 0.8125rem; font-weight: 600; color: var(--slate-600); margin-bottom: 12px;">
+                    🔍 Backend Query Filters
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Stock Range Filter -->
+                    <div class="filter-grid">
+                        <div>
+                            <label for="filterMinStock" style="font-size: 0.75rem;">Min Stock</label>
+                            <input type="number" id="filterMinStock" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="filterMaxStock" style="font-size: 0.75rem;">Max Stock</label>
+                            <input type="number" id="filterMaxStock" placeholder="Max">
+                        </div>
+                        <button type="button" id="applyStockFilterBtn" class="btn btn-primary btn-sm">Filter Stock</button>
+                    </div>
+
+                    <!-- Price Range Filter -->
+                    <div class="filter-grid" style="border-top: 1px solid var(--slate-200); padding-top: 12px;">
+                        <div>
+                            <label for="filterMinPrice" style="font-size: 0.75rem;">Min Price ($)</label>
+                            <input type="number" id="filterMinPrice" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="filterMaxPrice" style="font-size: 0.75rem;">Max Price ($)</label>
+                            <input type="number" id="filterMaxPrice" placeholder="Max">
+                        </div>
+                        <button type="button" id="applyPriceFilterBtn" class="btn btn-primary btn-sm">Filter Price</button>
+                    </div>
+                    
+                    <button type="button" id="clearFiltersBtn" class="btn btn-secondary btn-sm" style="align-self: flex-end;">Reset All Filters</button>
+                </div>
+            </div>
+
+            <!-- Inventory Data Table -->
+            <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
                             <th>Price</th>
-                            <th>Available Stock</th>
-                            <th>Actions</th>
+                            <th>Stock Level</th>
+                            <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody">
                         <tr>
-                            <td colspan="5" style="text-align: center; color: #64748b;">Loading catalog items...</td>
+                            <td colspan="5" style="text-align: center; color: var(--slate-400); padding: 24px;">
+                                Querying API endpoints...
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="pagination-container">
-                <div class="page-info" id="paginationInfo">Showing 0 of 0 items</div>
-                <div class="pagination-controls">
-                    <button id="prevPageBtn" class="btn-primary" style="padding: 6px 12px;">◀ Prev</button>
-                    <span id="currentPageLabel" style="font-weight: 600; padding: 0 5px;">Page 1</span>
-                    <button id="nextPageBtn" class="btn-primary" style="padding: 6px 12px;">Next ▶</button>
+            <!-- Table Pagination Bar -->
+            <div class="pagination-bar">
+                <div id="paginationInfo">Showing 0 of 0 items</div>
+                <div class="pagination-actions">
+                    <button id="prevPageBtn" class="btn btn-secondary btn-sm">◀ Prev</button>
+                    <span id="currentPageLabel" style="font-weight: 600; color: var(--slate-700);">Page 1</span>
+                    <button id="nextPageBtn" class="btn btn-secondary btn-sm">Next ▶</button>
                 </div>
             </div>
+            
         </div>
+        <footer class="app-footer">
+            <div class="footer-content">
+                <span class="footer-badge">⚙️ Debug Mode</span>
+                <p>Raw backend errors are displayed directly for debugging.</p>
+            </div>
+        </footer>
+
     </div>
 
     <script>
@@ -286,9 +554,7 @@
         
         let currentPage = 0;
         const pageSize = 5;
-        
-        // Active mode toggle configuration framework
-        let activeFilterMode = 'NONE'; // Can be 'NONE', 'STOCK', or 'PRICE'
+        let activeFilterMode = 'NONE'; // Options: 'NONE', 'STOCK', 'PRICE'
 
         const elements = {
             notification: document.getElementById('notificationBanner'),
@@ -317,7 +583,6 @@
             currentPageLabel: document.getElementById('currentPageLabel'),
             paginationInfo: document.getElementById('paginationInfo'),
 
-            // Filters DOM mapping
             filterMinStock: document.getElementById('filterMinStock'),
             filterMaxStock: document.getElementById('filterMaxStock'),
             filterMinPrice: document.getElementById('filterMinPrice'),
@@ -327,20 +592,30 @@
             clearFiltersBtn: document.getElementById('clearFiltersBtn')
         };
 
+        // Render Raw Backend Debug Responses Directly into UI Toast Notifications
         const notify = {
-            error(msg) {
-                elements.notification.className = "notification error";
+            error(status, rawErrorData) {
+                elements.notification.className = "toast toast-error";
                 elements.notification.style.display = "block";
-                elements.notification.textContent = `⚠️ Error: ${msg}`;
+                
+                let detailView = typeof rawErrorData === 'object' 
+                    ? JSON.stringify(rawErrorData, null, 2) 
+                    : rawErrorData;
+
+                elements.notification.innerHTML = `
+                    <strong>HTTP ${status} Exception:</strong> Raw response returned from backend API pipeline.
+                    <div class="error-payload-details">${escapeHtml(detailView)}</div>
+                `;
             },
             success(msg) {
-                elements.notification.className = "notification success";
+                elements.notification.className = "toast toast-success";
                 elements.notification.style.display = "block";
-                elements.notification.textContent = `✅ ${msg}`;
+                elements.notification.innerHTML = `✅ ${escapeHtml(msg)}`;
                 setTimeout(() => elements.notification.style.display = "none", 4000);
             },
             clear() {
                 elements.notification.style.display = "none";
+                elements.notification.innerHTML = "";
             }
         };
 
@@ -348,14 +623,16 @@
             async handleResponse(response) {
                 if (!response.ok) {
                     const contentType = response.headers.get("content-type");
-                    let errMsg = "An unknown server error occurred.";
+                    let errorBody;
+                    
                     if (contentType && contentType.includes("application/json")) {
-                        const errDetails = await response.json();
-                        errMsg = errDetails.message || errDetails.detail || errMsg;
+                        errorBody = await response.json();
                     } else {
-                        errMsg = await response.text() || errMsg;
+                        errorBody = await response.text();
                     }
-                    throw new Error(errMsg);
+                    
+                    // Throw both status and full backend body for debugging rendering
+                    throw { status: response.status, body: errorBody };
                 }
                 const text = await response.text();
                 return text ? JSON.parse(text) : null;
@@ -371,7 +648,6 @@
                 return this.handleResponse(res);
             },
 
-            // New API execution pipeline hitting your custom @GetMapping("items/by-price-range") handler
             async getByPriceRange(minPrice, maxPrice, page = 0, size = 5) {
                 const res = await fetch(`${API_BASE}/by-price-range?minPrice=${minPrice}&maxPrice=${maxPrice}&page=${page}&size=${size}`);
                 return this.handleResponse(res);
@@ -419,14 +695,13 @@
             try {
                 let data;
                 
-                // Evaluated route management mapping rules
                 if (activeFilterMode === 'STOCK') {
-                    const min = elements.filterMinStock.value || 0;
-                    const max = elements.filterMaxStock.value || 2147483647;
+                    const min = elements.filterMinStock.value;
+                    const max = elements.filterMaxStock.value;
                     data = await API.getByStockRange(min, max, currentPage, pageSize);
                 } else if (activeFilterMode === 'PRICE') {
-                    const min = elements.filterMinPrice.value || 0;
-                    const max = elements.filterMaxPrice.value || 2147483647;
+                    const min = elements.filterMinPrice.value;
+                    const max = elements.filterMaxPrice.value;
                     data = await API.getByPriceRange(min, max, currentPage, pageSize);
                 } else {
                     data = await API.getAll(currentPage, pageSize);
@@ -437,25 +712,25 @@
                 const totalPages = data.totalPages !== undefined ? data.totalPages : 1;
 
                 if (!items || items.length === 0) {
-                    elements.tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No items matched current filter metrics.</td></tr>`;
+                    elements.tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--slate-400); padding: 20px;">No records match the requested filter criteria.</td></tr>`;
                     updatePaginationUI(0, totalElements, totalPages);
                     return;
                 }
                 
                 elements.tableBody.innerHTML = items.map(item => {
                     const stockValue = item.stock !== undefined ? item.stock : (item.quantity !== undefined ? item.quantity : 0);
-                    const stockBadgeClass = stockValue > 0 ? "badge badge-stock" : "badge badge-out";
-                    const stockText = stockValue > 0 ? stockValue : "Out of stock";
+                    const stockBadgeClass = stockValue > 0 ? "badge badge-in-stock" : "badge badge-out-stock";
+                    const stockText = stockValue > 0 ? `${stockValue} units` : "Out of stock";
 
                     return `
                         <tr>
-                            <td><span class="badge">${item.id}</span></td>
+                            <td><span class="badge badge-id">#${item.id}</span></td>
                             <td><strong>${escapeHtml(item.name || '')}</strong></td>
                             <td>$${item.price ? Number(item.price).toFixed(2) : '0.00'}</td>
                             <td><span class="${stockBadgeClass}">${stockText}</span></td>
-                            <td class="actions-cell">
-                                <button onclick="setupEditForm(${item.id}, '${escapeHtml(item.name || '')}', ${item.price || 0}, ${stockValue})" class="btn-primary" style="padding: 5px 10px; font-size:12px;">Edit</button>
-                                <button onclick="handleDeleteItem(${item.id})" class="btn-danger" style="padding: 5px 10px; font-size:12px;">Delete</button>
+                            <td style="text-align: right;">
+                                <button onclick="setupEditForm(${item.id}, '${escapeHtml(item.name || '')}', ${item.price || 0}, ${stockValue})" class="btn btn-secondary btn-sm">Edit</button>
+                                <button onclick="handleDeleteItem(${item.id})" class="btn btn-danger btn-sm">Delete</button>
                             </td>
                         </tr>
                     `;
@@ -463,7 +738,7 @@
 
                 updatePaginationUI(currentPage, totalElements, totalPages);
             } catch (err) {
-                notify.error(err.message);
+                notify.error(err.status || 500, err.body || err.message);
             }
         }
 
@@ -473,7 +748,7 @@
             if (activeFilterMode === 'PRICE') filterLabelSuffix = ' (Price Filtered)';
 
             elements.currentPageLabel.textContent = `Page ${current + 1} of ${totalPages || 1}`;
-            elements.paginationInfo.textContent = `Total Items Found: ${totalElements}${filterLabelSuffix}`;
+            elements.paginationInfo.textContent = `Total Items: ${totalElements}${filterLabelSuffix}`;
             
             elements.prevPageBtn.disabled = (current <= 0);
             elements.nextPageBtn.disabled = (current >= totalPages - 1);
@@ -484,55 +759,53 @@
             notify.clear();
 
             const id = elements.itemId.value;
-            const name = elements.nameInput.value === "" ? null : elements.nameInput.value;
-            const rawPrice = elements.priceInput.value.trim();
-            const price = (rawPrice === "" || isNaN(rawPrice)) ? rawPrice : parseFloat(rawPrice);
-            
-            const rawStock = elements.stockInput.value.trim();
-            const stock = rawStock === "" ? 0 : parseInt(rawStock, 10);
+            // Send exact field values directly without front-end type coercions
+            const name = elements.nameInput.value;
+            const price = elements.priceInput.value;
+            const stock = elements.stockInput.value;
 
             const payload = { name, price, stock, quantity: stock };
 
             try {
                 if (id) {
                     await API.update(id, payload);
-                    notify.success(`Item ID ${id} updated successfully.`);
+                    notify.success(`Item #${id} updated successfully.`);
                     resetFormState();
                 } else {
                     const newItem = await API.create(payload);
-                    notify.success(`Item created successfully with ID: ${newItem.id}`);
+                    notify.success(`Item created successfully with ID: ${newItem ? newItem.id : 'N/A'}`);
                     elements.form.reset();
                 }
                 await loadInventory();
             } catch (err) {
-                notify.error(err.message);
+                notify.error(err.status || 500, err.body || err.message);
             }
         }
 
         function setupEditForm(id, name, price, stock) {
             notify.clear();
-            elements.formTitle.textContent = `Update Item #${id}`;
+            elements.formTitle.textContent = `✏️ Edit Item #${id}`;
             elements.itemId.value = id;
             elements.nameInput.value = name;
             elements.priceInput.value = price;
             elements.stockInput.value = stock;
-            elements.submitBtn.textContent = "Apply Updates";
-            elements.submitBtn.className = "btn-warning";
+            elements.submitBtn.textContent = "Apply Changes";
+            elements.submitBtn.className = "btn btn-warning";
             elements.cancelEditBtn.style.display = "inline-flex";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetFormState() {
-            elements.formTitle.textContent = "Add New Item";
+            elements.formTitle.textContent = "✏️ Add New Item";
             elements.itemId.value = "";
             elements.form.reset();
             elements.submitBtn.textContent = "Save Item";
-            elements.submitBtn.className = "btn-success";
+            elements.submitBtn.className = "btn btn-success";
             elements.cancelEditBtn.style.display = "none";
         }
 
         async function handleDeleteItem(id) {
-            if (!confirm(`Are you sure you want to delete item #${id}?`)) return;
+            if (!confirm(`Confirm deletion of item record #${id}?`)) return;
             notify.clear();
             try {
                 await API.delete(id);
@@ -540,7 +813,7 @@
                 if (elements.itemId.value === String(id)) resetFormState();
                 await loadInventory();
             } catch (err) {
-                notify.error(err.message);
+                notify.error(err.status || 500, err.body || err.message);
             }
         }
 
@@ -554,21 +827,18 @@
                 loadInventory();
             });
 
-            // Stock Filter click listener
             elements.applyStockFilterBtn.addEventListener('click', () => {
                 activeFilterMode = 'STOCK';
                 currentPage = 0;
                 loadInventory();
             });
 
-            // Price Filter click listener
             elements.applyPriceFilterBtn.addEventListener('click', () => {
                 activeFilterMode = 'PRICE';
                 currentPage = 0;
                 loadInventory();
             });
 
-            // Reset Filter fields action
             elements.clearFiltersBtn.addEventListener('click', () => {
                 activeFilterMode = 'NONE';
                 elements.filterMinStock.value = '';
@@ -594,16 +864,16 @@
             elements.searchBtn.addEventListener('click', async () => {
                 notify.clear();
                 const id = elements.searchId.value;
-                if (!id) return;
                 try {
                     const item = await API.getOne(id);
                     const itemStock = item.stock !== undefined ? item.stock : (item.quantity !== undefined ? item.quantity : 0);
                     elements.searchResult.innerHTML = `
-                        <div style="background: #f1f5f9; padding:10px; border-radius:6px; border-left: 4px solid var(--primary)">
-                            <strong>ID ${item.id}:</strong> ${escapeHtml(item.name || '')} — <strong>$${Number(item.price || 0).toFixed(2)}</strong> (Stock: ${itemStock})
+                        <div style="background: var(--slate-100); padding: 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--indigo-600); font-size: 0.8125rem;">
+                            <strong>#${item.id}:</strong> ${escapeHtml(item.name || '')} — <strong>$${Number(item.price || 0).toFixed(2)}</strong> (Stock: ${itemStock})
                         </div>`;
                 } catch (err) {
-                    elements.searchResult.innerHTML = `<span style="color:var(--danger)">⚠️ Error: Not found or invalid request.</span>`;
+                    elements.searchResult.innerHTML = '';
+                    notify.error(err.status || 500, err.body || err.message);
                 }
             });
 
@@ -614,17 +884,18 @@
                 try {
                     const updatedItem = await API.deduct(id, qty);
                     const itemStock = updatedItem.stock !== undefined ? updatedItem.stock : (updatedItem.quantity !== undefined ? updatedItem.quantity : 'Updated');
-                    notify.success(`Successfully deducted stock. ${updatedItem.name || 'Item'} remaining stock level: ${itemStock}`);
+                    notify.success(`Stock deducted. ${updatedItem.name || 'Item'} remaining: ${itemStock}`);
                     elements.deductId.value = "";
                     elements.deductQty.value = "";
                     await loadInventory();
                 } catch (err) {
-                    notify.error(err.message);
+                    notify.error(err.status || 500, err.body || err.message);
                 }
             });
         });
 
         function escapeHtml(str) {
+            if (typeof str !== 'string') return str;
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>

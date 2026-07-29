@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Order Management Hub</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        h2 { margin-top: 0; color: #111; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .item-row input { flex: 1; }
+        button {
+            background-color: #0070f3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        button:hover { background-color: #0051a8; }
+        button.secondary { background-color: #eaeaea; color: #333; }
+        button.secondary:hover { background-color: #dcdcdc; }
+        
+        /* Table and Status styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { background-color: #f8fafc; }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge.COMPLETED { background: #c6f6d5; color: #22543d; }
+        .badge.PENDING { background: #feebc8; color: #744210; }
+        .badge.FAILED { background: #fed7d7; color: #742a2a; }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        #responseArea {
+            white-space: pre-wrap;
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success-box { background-color: #e6fffa; border: 1px solid #b2f5ea; color: #234e52; }
+        .error-box { background-color: #fff5f5; border: 1px solid #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+
+    <h1>🛒 Order Management Hub</h1>
+    
+    <div class="card">
+        <h2>Place New Order</h2>
+        <form id="orderForm">
+            <div class="form-group">
+                <label for="customerId">Customer ID</label>
+                <input type="number" id="customerId" value="101" required>
+            </div>
+
+            <div class="form-group">
+                <label>Items in Cart</label>
+                <div id="itemsContainer">
+                    <div class="item-row">
+                        <input type="number" placeholder="Item ID" class="item-id" value="1" required>
+                        <input type="number" placeholder="Quantity" class="item-qty" value="2" min="1" required>
+                        <input type="number" step="0.01" placeholder="Price ($)" class="item-price" value="29.99" required>
+                        <button type="button" class="secondary" onclick="removeItemRow(this)">X</button>
+                    </div>
+                </div>
+                <button type="button" class="secondary" style="margin-top: 10px;" onclick="addItemRow()">+ Add Another Item</button>
+            </div>
+            <button type="submit" style="width: 100%; margin-top: 15px;">Submit Order</button>
+        </form>
+    </div>
+
+    <div class="card" style="padding: 15px; display:none;" id="responseCard">
+        <h3>Transaction Feedback Logs</h3>
+        <div id="responseArea"></div>
+    </div>
+
+    <div class="card">
+        <h2>Order Logs & Search</h2>
+        
+        <div class="search-container">
+            <input type="text" id="searchIdInput" placeholder="Search by Order Document ID...">
+            <button onclick="searchOrderById()">Search</button>
+            <button class="secondary" onclick="resetLogs()">Clear / Refresh</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer ID</th>
+                    <th>Total Price</th>
+                    <th>Items Purchased</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+                </tbody>
+        </table>
+
+        <div class="pagination-controls" id="paginationControls">
+            <button id="prevBtn" class="secondary" onclick="changePage(-1)">◀ Previous</button>
+            <span id="pageTracker">Page 1 of 1</span>
+            <button id="nextBtn" class="secondary" onclick="changePage(1)">Next ▶</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8082/orders';
+        let currentPage = 0;
+        const pageSize = 5; // Fetches 5 orders per page view
+
+        // --- FETCH ALL ORDERS (PAGINATED) ---
+        async function fetchOrders(page = 0) {
+            try {
+                // Hits GET http://localhost:8082/orders?page=X&size=Y
+                const response = await fetch(`${API_BASE_URL}?page=${page}&size=${pageSize}`);
+                if (!response.ok) throw new Error("Could not pull logs");
+                
+                const pageData = await response.json();
+                
+                renderTable(pageData.content || pageData); // Adjusts dynamically if backend doesn't return Spring Page wrappers
+                updatePaginationControls(pageData);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Failed to connect to backend to pull logs. Check CORS config.</td></tr>`;
+            }
+        }
+
+        // --- SEARCH BY ID ---
+        async function searchOrderById() {
+            const id = document.getElementById('searchIdInput').value.trim();
+            if(!id) return alert("Please enter an ID to locate.");
+
+            try {
+                // Hits GET http://localhost:8082/orders/{id}
+                const response = await fetch(`${API_BASE_URL}/${id}`);
+                if(!response.ok) {
+                    document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="5" style="text-align:center; color:orange;">No order document found matching ID: ${id}</td></tr>`;
+                    document.getElementById('paginationControls').style.display = 'none';
+                    return;
+                }
+                const order = await response.json();
+                renderTable([order]); // Pass single order as an array list
+                document.getElementById('paginationControls').style.display = 'none';
+            } catch(err) {
+                alert("Error parsing document lookup match.");
+            }
+        }
+
+        function renderTable(ordersArray) {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            if(!ordersArray || ordersArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No records exist inside MongoDB yet.</td></tr>`;
+                return;
+            }
+
+            ordersArray.forEach(order => {
+                const itemsSummary = order.items.map(i => `ID:${i.itemId} (x${i.quantity})`).join(', ');
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-family: monospace; font-size:12px;"><b>${order.id}</b></td>
+                    <td>${order.customerId}</td>
+                    <td><b>$${order.totalAmount.toFixed(2)}</b></td>
+                    <td style="font-size:13px; color:#555;">${itemsSummary}</td>
+                    <td><span class="badge ${order.status}">${order.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updatePaginationControls(pageData) {
+            document.getElementById('paginationControls').style.display = 'flex';
+            const totalPages = pageData.totalPages || 1;
+            currentPage = pageData.number || 0;
+
+            document.getElementById('pageTracker').innerText = `Page ${currentPage + 1} of ${totalPages}`;
+            document.getElementById('prevBtn').disabled = (currentPage === 0);
+            document.getElementById('nextBtn').disabled = (currentPage >= totalPages - 1);
+        }
+
+        function changePage(direction) {
+            fetchOrders(currentPage + direction);
+        }
+
+        function resetLogs() {
+            document.getElementById('searchIdInput').value = '';
+            fetchOrders(0);
+        }
+
+        // --- HOOKS FOR CART CREATION FORM ---
+        function addItemRow() {
+            const container = document.getElementById('itemsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <input type="number" placeholder="Item ID" class="item-id" required>
+                <input type="number" placeholder="Quantity" class="item-qty" min="1" required>
+                <input type="number" step="0.01" placeholder="Price ($)" class="item-price" required>
+                <button type="button" class="secondary" onclick="removeItemRow(this)">X</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeItemRow(button) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length > 1) button.parentElement.remove();
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseCard = document.getElementById('responseCard');
+            const responseArea = document.getElementById('responseArea');
+            responseCard.style.display = 'block';
+            responseArea.style.display = 'block';
+            responseArea.className = '';
+            responseArea.innerText = 'Sending transaction...';
+
+            const customerId = parseInt(document.getElementById('customerId').value);
+            const items = [];
+            document.querySelectorAll('.item-row').forEach(row => {
+                items.push({
+                    itemId: parseInt(row.querySelector('.item-id').value),
+                    quantity: parseInt(row.querySelector('.item-qty').value),
+                    price: parseFloat(row.querySelector('.item-price').value)
+                });
+            });
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customerId, items })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    responseArea.className = 'success-box';
+                    responseArea.innerText = `SUCCESS (HTTP ${response.status})\n\n` + JSON.stringify(data, null, 4);
+                    fetchOrders(0); // Instantly pull modern state refresh to update the log below!
+                } else {
+                    responseArea.className = 'error-box';
+                    responseArea.innerText = `SERVER FAILED (HTTP ${response.status})\n\n` + JSON.stringify(data, null, 4);
+                }
+            } catch (err) {
+                responseArea.className = 'error-box';
+                responseArea.innerText = `NETWORK CRASH: Check endpoint status connectivity details.`;
+            }
+        });
+
+        // Bootstrap load on start
+        fetchOrders(0);
+    </script>
+</body>
+</html>

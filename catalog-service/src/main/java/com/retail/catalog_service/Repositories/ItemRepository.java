@@ -11,7 +11,9 @@ import com.retail.catalog_service.Entities.Item;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Integer>,JpaSpecificationExecutor<Item> {
     boolean existsByName(String name);
-
     Page<Item> findByStockBetween(Integer minStock, Integer maxStock, Pageable pageable);
     Page<Item> findByPriceBetween(Integer minPrice, Integer maxPrice, Pageable pageable);
+
+
+    Integer findStockById(Integer id);
 }

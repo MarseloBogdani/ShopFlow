@@ -1,15 +1,15 @@
-package com.retail.catalog_service.Exceptions;
+package com.retail.order_service.Exceptions;
 
 import java.time.LocalDateTime;
 
-public class CatalogErrorResponse {
+public class OrderErrorResponse {
     private LocalDateTime timestamp;
     private int status;
     private String error;
     private String message;
     private String path;
 
-    public CatalogErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path) {
+    public OrderErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path) {
         this.timestamp = timestamp;
         this.status = status;
         this.error = error;

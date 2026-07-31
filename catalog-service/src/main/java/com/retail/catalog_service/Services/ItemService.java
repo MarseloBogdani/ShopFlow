@@ -112,4 +112,13 @@ public class ItemService {
         item.setStock(item.getStock() - quantityToDeduct);
         return itemRepository.save(item);
     }
+
+    public Integer getStockById(Integer id) {
+        if(id == null || id <=0){
+            throw new IllegalArgumentException("id must be a positive integer");
+        }
+        
+        return itemRepository
+                .findStockById(id);
+    }
 }

@@ -57,6 +57,11 @@ public class CatalogController {
         return itemService.getItemById(id);
     }
 
+    @GetMapping("/items/Stock/{id}")
+    public Item getStockById(@PathVariable Integer id) {
+        return itemService.getItemById(id);
+    }
+
     @PostMapping("/items")
     public Item addItem(@Valid @RequestBody Item newItem) {
         return itemService.addItem(newItem);

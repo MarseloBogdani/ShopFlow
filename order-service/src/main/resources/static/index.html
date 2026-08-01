@@ -3,307 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retail Order Management Hub</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f6f8;
-            color: #333;
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        h2 { margin-top: 0; color: #111; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .item-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .item-row input { flex: 1; }
-        button {
-            background-color: #0070f3;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        button:hover { background-color: #0051a8; }
-        button.secondary { background-color: #eaeaea; color: #333; }
-        button.secondary:hover { background-color: #dcdcdc; }
-        
-        /* Table and Status styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th { background-color: #f8fafc; }
-        .badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .badge.COMPLETED { background: #c6f6d5; color: #22543d; }
-        .badge.PENDING { background: #feebc8; color: #744210; }
-        .badge.FAILED { background: #fed7d7; color: #742a2a; }
-        
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .pagination-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-        #responseArea {
-            white-space: pre-wrap;
-            font-family: monospace;
-            padding: 15px;
-            border-radius: 4px;
-            display: none;
-        }
-        .success-box { background-color: #e6fffa; border: 1px solid #b2f5ea; color: #234e52; }
-        .error-box { background-color: #fff5f5; border: 1px solid #fed7d7; color: #742a2a; }
-    </style>
+    <title>Order Service - Debug Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
 
-    <h1>🛒 Order Management Hub</h1>
-    
-    <div class="card">
-        <h2>Place New Order</h2>
-        <form id="orderForm">
-            <div class="form-group">
-                <label for="customerId">Customer ID</label>
-                <input type="number" id="customerId" value="101" required>
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-10 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wide flex items-center gap-2 text-indigo-400">
+                <i class="fa-solid fa-bug"></i> Order Service (Debug Console)
+            </h1>
+            <button onclick="openCreateModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm shadow-md">
+                <i class="fa-solid fa-plus"></i> Create New Order
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 space-y-6">
+
+        <!-- Debug Error Banner -->
+        <div id="debugErrorContainer" class="hidden bg-rose-950/80 border border-rose-600 text-rose-200 p-4 rounded-xl shadow-lg space-y-2">
+            <div class="flex justify-between items-center font-bold text-sm uppercase tracking-wider text-rose-400">
+                <span id="debugErrorTitle"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Backend Response Error</span>
+                <button onclick="clearDebugError()" class="text-rose-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
-            <div class="form-group">
-                <label>Items in Cart</label>
-                <div id="itemsContainer">
-                    <div class="item-row">
-                        <input type="number" placeholder="Item ID" class="item-id" value="1" required>
-                        <input type="number" placeholder="Quantity" class="item-qty" value="2" min="1" required>
-                        <input type="number" step="0.01" placeholder="Price ($)" class="item-price" value="29.99" required>
-                        <button type="button" class="secondary" onclick="removeItemRow(this)">X</button>
-                    </div>
-                </div>
-                <button type="button" class="secondary" style="margin-top: 10px;" onclick="addItemRow()">+ Add Another Item</button>
-            </div>
-            <button type="submit" style="width: 100%; margin-top: 15px;">Submit Order</button>
-        </form>
-    </div>
-
-    <div class="card" style="padding: 15px; display:none;" id="responseCard">
-        <h3>Transaction Feedback Logs</h3>
-        <div id="responseArea"></div>
-    </div>
-
-    <div class="card">
-        <h2>Order Logs & Search</h2>
-        
-        <div class="search-container">
-            <input type="text" id="searchIdInput" placeholder="Search by Order Document ID...">
-            <button onclick="searchOrderById()">Search</button>
-            <button class="secondary" onclick="resetLogs()">Clear / Refresh</button>
+            <pre id="debugErrorBody" class="font-mono text-xs bg-slate-950 p-3 rounded border border-rose-900/50 overflow-x-auto whitespace-pre-wrap"></pre>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Customer ID</th>
-                    <th>Total Price</th>
-                    <th>Items Purchased</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="ordersTableBody">
-                </tbody>
-        </table>
+        <!-- Filter Bar -->
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-wrap gap-4 justify-between items-center shadow-md">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-user absolute left-3 top-3 text-slate-400"></i>
+                    <input type="text" id="filterCustomerId" placeholder="Filter by Customer ID..." 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-slate-200">
+                </div>
+                <button onclick="applyCustomerFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition">
+                    Filter
+                </button>
+                <button onclick="resetFilters()" class="text-slate-400 hover:text-slate-200 text-sm">Clear</button>
+            </div>
+            
+            <div id="activeFilterBadge" class="hidden text-xs bg-indigo-900/50 text-indigo-300 border border-indigo-700 px-3 py-1 rounded-full flex items-center gap-2">
+                <span>Filtering Customer ID: <strong id="badgeCustId"></strong></span>
+                <button onclick="resetFilters()" class="hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
 
-        <div class="pagination-controls" id="paginationControls">
-            <button id="prevBtn" class="secondary" onclick="changePage(-1)">◀ Previous</button>
-            <span id="pageTracker">Page 1 of 1</span>
-            <button id="nextBtn" class="secondary" onclick="changePage(1)">Next ▶</button>
+        <!-- Orders Table -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="p-4">Order ID</th>
+                            <th class="p-4">Customer ID</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Total Amount</th>
+                            <th class="p-4">Created Date</th>
+                            <th class="p-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="divide-y divide-slate-700 text-sm">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="p-4 border-t border-slate-700 flex justify-between items-center text-sm">
+                <span id="pageInfo" class="text-slate-400">Page 1 of 1</span>
+                <div class="flex gap-2">
+                    <button id="btnPrev" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded disabled:opacity-40 disabled:cursor-not-allowed transition">Previous</button>
+                    <button id="btnNext" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded disabled:opacity-40 disabled:cursor-not-allowed transition">Next</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Order Modal -->
+    <div id="createModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-lg font-bold text-slate-100"><i class="fa-solid fa-cart-plus text-indigo-400 mr-2"></i>Create Order (No Client Validation)</h2>
+                <button onclick="closeCreateModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <form id="orderForm" novalidate onsubmit="submitOrder(event)" class="flex-1 flex flex-col justify-between overflow-hidden space-y-4">
+                <div class="overflow-y-auto space-y-4 pr-1">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Customer ID</label>
+                        <input type="text" id="createCustomerId" placeholder="e.g. 1"
+                               class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-semibold uppercase text-slate-400">Items (Prices auto-fetched from Catalog)</label>
+                            <button type="button" onclick="addOrderItemRow()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
+                                <i class="fa-solid fa-plus mr-1"></i>Add Item
+                            </button>
+                        </div>
+                        
+                        <div id="itemsContainer" class="space-y-2">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-700 flex justify-end gap-3 shrink-0">
+                    <button type="button" onclick="closeCreateModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition">Submit Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Order Details Modal -->
+    <div id="detailsModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-lg shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <h2 class="text-lg font-bold">Order Details #<span id="detailOrderId" class="text-indigo-400"></span></h2>
+                <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div id="detailsContent" class="space-y-4 text-sm">
+                <!-- Injected by JS -->
+            </div>
         </div>
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8082/orders';
+        const API_BASE = '/orders';
         let currentPage = 0;
-        const pageSize = 5; // Fetches 5 orders per page view
+        let totalPages = 0;
+        let activeCustomerId = null;
 
-        // --- FETCH ALL ORDERS (PAGINATED) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchOrders();
+            addOrderItemRow();
+        });
+
+        // Debug handler: outputs raw Spring Boot error responses
+        async function displayRawBackendError(response) {
+            clearDebugError();
+            const container = document.getElementById('debugErrorContainer');
+            const title = document.getElementById('debugErrorTitle');
+            const body = document.getElementById('debugErrorBody');
+
+            title.innerText = `HTTP ${response.status} ${response.statusText} - ${response.url}`;
+            
+            try {
+                const text = await response.text();
+                const json = JSON.parse(text);
+                body.innerText = JSON.stringify(json, null, 2);
+            } catch {
+                body.innerText = text || 'No response body returned.';
+            }
+
+            container.classList.remove('hidden');
+        }
+
+        function clearDebugError() {
+            document.getElementById('debugErrorContainer').classList.add('hidden');
+            document.getElementById('debugErrorBody').innerText = '';
+        }
+
+        // --- Fetch Orders ---
         async function fetchOrders(page = 0) {
-            try {
-                // Hits GET http://localhost:8082/orders?page=X&size=Y
-                const response = await fetch(`${API_BASE_URL}?page=${page}&size=${pageSize}`);
-                if (!response.ok) throw new Error("Could not pull logs");
-                
-                const pageData = await response.json();
-                
-                renderTable(pageData.content || pageData); // Adjusts dynamically if backend doesn't return Spring Page wrappers
-                updatePaginationControls(pageData);
-            } catch (err) {
-                console.error(err);
-                document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Failed to connect to backend to pull logs. Check CORS config.</td></tr>`;
-            }
-        }
+            clearDebugError();
+            currentPage = page;
+            let url = activeCustomerId 
+                ? `${API_BASE}/customer/${activeCustomerId}?page=${page}&size=10`
+                : `${API_BASE}?page=${page}&size=20`;
 
-        // --- SEARCH BY ID ---
-        async function searchOrderById() {
-            const id = document.getElementById('searchIdInput').value.trim();
-            if(!id) return alert("Please enter an ID to locate.");
-
-            try {
-                // Hits GET http://localhost:8082/orders/{id}
-                const response = await fetch(`${API_BASE_URL}/${id}`);
-                if(!response.ok) {
-                    document.getElementById('ordersTableBody').innerHTML = `<tr><td colspan="5" style="text-align:center; color:orange;">No order document found matching ID: ${id}</td></tr>`;
-                    document.getElementById('paginationControls').style.display = 'none';
-                    return;
-                }
-                const order = await response.json();
-                renderTable([order]); // Pass single order as an array list
-                document.getElementById('paginationControls').style.display = 'none';
-            } catch(err) {
-                alert("Error parsing document lookup match.");
-            }
-        }
-
-        function renderTable(ordersArray) {
-            const tbody = document.getElementById('ordersTableBody');
-            tbody.innerHTML = '';
-
-            if(!ordersArray || ordersArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No records exist inside MongoDB yet.</td></tr>`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                await displayRawBackendError(res);
                 return;
             }
 
-            ordersArray.forEach(order => {
-                const itemsSummary = order.items.map(i => `ID:${i.itemId} (x${i.quantity})`).join(', ');
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="font-family: monospace; font-size:12px;"><b>${order.id}</b></td>
-                    <td>${order.customerId}</td>
-                    <td><b>$${order.totalAmount.toFixed(2)}</b></td>
-                    <td style="font-size:13px; color:#555;">${itemsSummary}</td>
-                    <td><span class="badge ${order.status}">${order.status}</span></td>
-                `;
-                tbody.appendChild(row);
-            });
+            const data = await res.json();
+            renderTable(data.content || []);
+            updatePagination(data);
         }
 
-        function updatePaginationControls(pageData) {
-            document.getElementById('paginationControls').style.display = 'flex';
-            const totalPages = pageData.totalPages || 1;
-            currentPage = pageData.number || 0;
+        function renderTable(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No orders found.</td></tr>`;
+                return;
+            }
 
-            document.getElementById('pageTracker').innerText = `Page ${currentPage + 1} of ${totalPages}`;
-            document.getElementById('prevBtn').disabled = (currentPage === 0);
-            document.getElementById('nextBtn').disabled = (currentPage >= totalPages - 1);
+            tbody.innerHTML = orders.map(o => `
+                <tr class="hover:bg-slate-700/50 transition">
+                    <td class="p-4 font-mono font-medium text-slate-300">#${o.id}</td>
+                    <td class="p-4">Customer #${o.customerId}</td>
+                    <td class="p-4">${getStatusBadge(o.status)}</td>
+                    <td class="p-4 font-semibold text-emerald-400">$${Number(o.totalAmount || 0).toFixed(2)}</td>
+                    <td class="p-4 text-slate-400">${o.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A'}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="viewOrder(${o.id})" class="text-indigo-400 hover:text-indigo-300 px-3 py-1 rounded bg-indigo-950/50 border border-indigo-800 text-xs font-medium">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        function changePage(direction) {
-            fetchOrders(currentPage + direction);
+        function getStatusBadge(status) {
+            const colors = {
+                'PENDING': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                'PROCESSING': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                'COMPLETE': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                'CANCELLED': 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            };
+            return `<span class="px-2.5 py-1 rounded-full text-xs font-medium border ${colors[status] || 'bg-slate-700 text-slate-300'}">${status || 'UNKNOWN'}</span>`;
         }
 
-        function resetLogs() {
-            document.getElementById('searchIdInput').value = '';
+        // --- Filters ---
+        function applyCustomerFilter() {
+            const id = document.getElementById('filterCustomerId').value;
+            activeCustomerId = id;
+            if (id) {
+                document.getElementById('activeFilterBadge').classList.remove('hidden');
+                document.getElementById('badgeCustId').innerText = id;
+            }
             fetchOrders(0);
         }
 
-        // --- HOOKS FOR CART CREATION FORM ---
-        function addItemRow() {
+        function resetFilters() {
+            document.getElementById('filterCustomerId').value = '';
+            activeCustomerId = null;
+            document.getElementById('activeFilterBadge').classList.add('hidden');
+            fetchOrders(0);
+        }
+
+        // --- Dynamic Item Inputs (Product ID & Quantity only) ---
+        function addOrderItemRow() {
             const container = document.getElementById('itemsContainer');
-            const newRow = document.createElement('div');
-            newRow.className = 'item-row';
-            newRow.innerHTML = `
-                <input type="number" placeholder="Item ID" class="item-id" required>
-                <input type="number" placeholder="Quantity" class="item-qty" min="1" required>
-                <input type="number" step="0.01" placeholder="Price ($)" class="item-price" required>
-                <button type="button" class="secondary" onclick="removeItemRow(this)">X</button>
+            const rowId = Date.now();
+            const row = document.createElement('div');
+            row.className = "flex gap-2 items-center item-row";
+            row.id = `row-${rowId}`;
+            row.innerHTML = `
+                <input type="text" placeholder="Product ID" class="item-product w-1/2 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm">
+                <input type="text" placeholder="Quantity" class="item-qty w-1/2 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm">
+                <button type="button" onclick="document.getElementById('row-${rowId}').remove()" class="text-rose-400 hover:text-rose-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
             `;
-            container.appendChild(newRow);
+            container.appendChild(row);
         }
 
-        function removeItemRow(button) {
-            const rows = document.querySelectorAll('.item-row');
-            if (rows.length > 1) button.parentElement.remove();
-        }
-
-        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+        // --- Submit Order ---
+        async function submitOrder(e) {
             e.preventDefault();
-            const responseCard = document.getElementById('responseCard');
-            const responseArea = document.getElementById('responseArea');
-            responseCard.style.display = 'block';
-            responseArea.style.display = 'block';
-            responseArea.className = '';
-            responseArea.innerText = 'Sending transaction...';
+            clearDebugError();
 
-            const customerId = parseInt(document.getElementById('customerId').value);
-            const items = [];
-            document.querySelectorAll('.item-row').forEach(row => {
-                items.push({
-                    itemId: parseInt(row.querySelector('.item-id').value),
-                    quantity: parseInt(row.querySelector('.item-qty').value),
-                    price: parseFloat(row.querySelector('.item-price').value)
-                });
+            const rawCustId = document.getElementById('createCustomerId').value;
+            const customerId = isNaN(rawCustId) || rawCustId === '' ? rawCustId : Number(rawCustId);
+            
+            const rows = document.querySelectorAll('.item-row');
+            // User passes ONLY productId and quantity (price is fetched on backend)
+            const items = Array.from(rows).map(row => {
+                const p = row.querySelector('.item-product').value;
+                const q = row.querySelector('.item-qty').value;
+
+                return {
+                    productId: isNaN(p) || p === '' ? p : Number(p),
+                    quantity: isNaN(q) || q === '' ? q : Number(q)
+                };
             });
 
-            try {
-                const response = await fetch(API_BASE_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customerId, items })
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    responseArea.className = 'success-box';
-                    responseArea.innerText = `SUCCESS (HTTP ${response.status})\n\n` + JSON.stringify(data, null, 4);
-                    fetchOrders(0); // Instantly pull modern state refresh to update the log below!
-                } else {
-                    responseArea.className = 'error-box';
-                    responseArea.innerText = `SERVER FAILED (HTTP ${response.status})\n\n` + JSON.stringify(data, null, 4);
-                }
-            } catch (err) {
-                responseArea.className = 'error-box';
-                responseArea.innerText = `NETWORK CRASH: Check endpoint status connectivity details.`;
+            // Endpoint: POST /orders/make-order/{userId}
+            const res = await fetch(`${API_BASE}/make-order/${customerId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(items)
+            });
+            
+            if (!res.ok) {
+                await displayRawBackendError(res);
+            } else {
+                closeCreateModal();
+                fetchOrders(0);
             }
-        });
+        }
 
-        // Bootstrap load on start
-        fetchOrders(0);
+        // --- Fetch Single Order Details ---
+        async function viewOrder(id) {
+            clearDebugError();
+            const res = await fetch(`${API_BASE}/${id}`);
+            if (!res.ok) {
+                await displayRawBackendError(res);
+                return;
+            }
+
+            const order = await res.json();
+            document.getElementById('detailOrderId').innerText = order.id;
+            document.getElementById('detailsContent').innerHTML = `
+                <div class="grid grid-cols-2 gap-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 text-slate-300">
+                    <div>Customer ID: <strong class="text-white">#${order.customerId}</strong></div>
+                    <div>Status: ${getStatusBadge(order.status)}</div>
+                    <div>Total Price: <strong class="text-emerald-400">$${Number(order.totalAmount || 0).toFixed(2)}</strong></div>
+                    <div>Date: <span class="text-slate-400">${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</span></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-xs uppercase tracking-wider text-slate-400 mb-2">Order Items</h4>
+                    <div class="space-y-2 max-h-48 overflow-y-auto">
+                        ${(order.items || []).map(item => `
+                            <div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-lg border border-slate-700/50">
+                                <div>
+                                    <div class="font-medium">Product #${item.productId}</div>
+                                    <div class="text-xs text-slate-400">Qty: ${item.quantity} × $${Number(item.price || 0).toFixed(2)}</div>
+                                </div>
+                                <div class="font-mono text-slate-200 font-medium">$${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailsModal').classList.remove('hidden');
+        }
+
+        // --- Pagination Logic ---
+        function updatePagination(data) {
+            totalPages = data.totalPages || 0;
+            document.getElementById('pageInfo').innerText = `Page ${(data.number || 0) + 1} of ${totalPages || 1}`;
+            document.getElementById('btnPrev').disabled = data.first ?? true;
+            document.getElementById('btnNext').disabled = data.last ?? true;
+        }
+
+        function changePage(delta) {
+            fetchOrders(currentPage + delta);
+        }
+
+        // --- Modal Controllers ---
+        function openCreateModal() { 
+            document.getElementById('orderForm').reset();
+            document.getElementById('itemsContainer').innerHTML = '';
+            addOrderItemRow();
+            document.getElementById('createModal').classList.remove('hidden'); 
+        }
+        function closeCreateModal() { document.getElementById('createModal').classList.add('hidden'); }
+        function closeDetailsModal() { document.getElementById('detailsModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

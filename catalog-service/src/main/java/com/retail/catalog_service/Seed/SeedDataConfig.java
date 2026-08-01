@@ -23,7 +23,6 @@ public class SeedDataConfig {
     @Bean
     CommandLineRunner initDatabase(ItemRepository itemRepository) {
         return args -> {
-            // 1. Check if data already exists to avoid duplicate seeding on every restart
             if (itemRepository.count() > 0) {
                 log.info("Database already contains data. Skipping seeding.");
                 return;
@@ -31,10 +30,8 @@ public class SeedDataConfig {
 
             log.info("Starting database seeding...");
 
-            // 2. Define how many items you want to seed (e.g., 10,000 items)
             int totalItems = 10000; 
 
-            // 3. Generate data efficiently using streams
             List<Item> mockItems = IntStream.rangeClosed(1, totalItems)
                 .mapToObj(i -> {
                     Item item = new Item();

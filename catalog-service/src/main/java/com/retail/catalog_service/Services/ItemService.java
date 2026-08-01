@@ -1,5 +1,9 @@
 package com.retail.catalog_service.Services;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
@@ -10,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.retail.catalog_service.Entities.Item;
 import com.retail.catalog_service.Exceptions.ConflictException;
 import com.retail.catalog_service.Exceptions.ResourceNotFoundException;
+import com.retail.catalog_service.Records.DeductStockAnswer;
+import com.retail.catalog_service.Records.DeductStockRequest;
 import com.retail.catalog_service.Repositories.ItemRepository;
 
 @Service
@@ -47,7 +53,7 @@ public class ItemService {
 
         return  itemRepository
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item with id: " + id + "not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Item with id: " + id + " not found!"));
     }
 
     public Item addItem(Item newItem) {
@@ -120,5 +126,26 @@ public class ItemService {
         
         return itemRepository
                 .findStockById(id);
+    }
+
+    public BigDecimal getItemPriceById(Integer id) {
+        return itemRepository.findPriceById(id);
+    }
+
+    @Transactional
+    public List<DeductStockAnswer> reserveStock(List<DeductStockRequest> OrderItemData) {
+        Integer productId;
+        Integer quantity;
+        BigDecimal price;
+        List<DeductStockAnswer> awnser_obj = new ArrayList<>();
+        for(DeductStockRequest request: OrderItemData){
+            productId = request.productId();
+            quantity = request.quantity();
+            deductStock(productId, quantity);
+            price = getItemPriceById(productId);
+            awnser_obj.add(new DeductStockAnswer(productId, quantity, price));
+        }
+
+        return awnser_obj;
     }
 }

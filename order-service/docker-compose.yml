@@ -1,27 +1,27 @@
 version: '3.8'
 
 services:
-  postgres-db:
+  order-db:
     image: postgres:15
-    container_name: catalog_postgres
+    container_name: order_postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: your_password_here
-      POSTGRES_DB: catalog_db
+      POSTGRES_DB: Order_db
     ports:
-      - "5432:5432"
+      - "5431:5432"
     networks:
       - microservices_net
 
-  items: 
+  order-service:
     build: .
-    container_name: items_service
+    container_name: order_service
     ports:
-      - "8080:8080"
+      - "8081:8080" 
     depends_on:
-      - postgres-db
+      - order-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/catalog_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://order-db:5432/Order_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=your_password_here
     networks:

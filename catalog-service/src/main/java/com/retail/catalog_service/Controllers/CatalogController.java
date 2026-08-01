@@ -1,5 +1,7 @@
 package com.retail.catalog_service.Controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.retail.catalog_service.Entities.Item;
+import com.retail.catalog_service.Records.DeductStockAnswer;
+import com.retail.catalog_service.Records.DeductStockRequest;
 import com.retail.catalog_service.Services.ItemService;
 
 import jakarta.validation.Valid;
@@ -65,6 +69,13 @@ public class CatalogController {
     @PostMapping("/items")
     public Item addItem(@Valid @RequestBody Item newItem) {
         return itemService.addItem(newItem);
+    }
+
+    @PostMapping("/items/deduct-batch")
+    public ResponseEntity<List<DeductStockAnswer>> deductStockBatch(@RequestBody List<@Valid DeductStockRequest> requests) {
+        List<DeductStockAnswer> awnser_obj = itemService.reserveStock(requests);
+
+        return ResponseEntity.ok(awnser_obj);
     }
 
     @PostMapping("/items/{id}/deduct")

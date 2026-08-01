@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,6 +41,7 @@ public class Order {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
 
     @PrePersist
@@ -53,25 +56,41 @@ public class Order {
         this.totalAmount = BigDecimal.ZERO;
     }
 
+    public Order(Integer customerId,OrderStatus status,List<OrderItem> incoming_items){
+        this.customerId = customerId;
+        this.totalAmount = BigDecimal.ZERO;
+        this.status = status;
+
+        if (incoming_items != null) {
+            for(OrderItem item : incoming_items){
+                addOrderItem(item);
+            }
+        }
+    }
+
     public void addOrderItem(OrderItem item){
-        items.add(item);
-        item.setOrder(this);
-        BigDecimal itemTotal = item.CalculateItemTotal();
-        this.totalAmount = this.totalAmount.add(itemTotal);
+        if (item != null){
+            items.add(item);
+            item.setOrder(this);
+            BigDecimal itemTotal = item.calculateItemTotal();
+            this.totalAmount = this.totalAmount.add(itemTotal);
+        }
     }
 
     public void removeOrderItem(OrderItem item) {
-        items.remove(item);
-        item.setOrder(null);
-        BigDecimal itemTotal = item.CalculateItemTotal();
-        this.totalAmount = this.totalAmount.subtract(itemTotal);
+        if (item != null){
+            items.remove(item);
+            item.setOrder(null);
+            BigDecimal itemTotal = item.calculateItemTotal();
+            this.totalAmount = this.totalAmount.subtract(itemTotal);
+        }
     }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
     public Integer getCustomerId() { return customerId; }
-    public void setCustomerId(Integer customerId) { this.customerId = customerId; }
+    public void setCustomerId(Integer customer_id) { this.customerId = customer_id; }
 
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }

@@ -1,0 +1,19 @@
+FROM eclipse-temurin:25-jdk-jammy AS build-env
+WORKDIR /app
+
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+
+RUN ./mvnw dependency:go-offline -B
+
+COPY src ./src
+RUN ./mvnw clean package -DskipTests
+
+FROM eclipse-temurin:25-jre-jammy
+WORKDIR /app
+
+COPY --from=build-env /app/target/*.jar app.jar
+
+EXPOSE 8081
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

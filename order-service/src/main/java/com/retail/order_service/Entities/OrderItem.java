@@ -2,6 +2,8 @@ package com.retail.order_service.Entities;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,6 +18,7 @@ import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "order_items")
+
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,24 +34,22 @@ public class OrderItem {
     @NotNull(message = "quantity cannot be empty!")
     private Integer quantity;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    @Positive(message = "price must be a positive Integer!")
-    @NotNull(message = "price cannot be empty!")
+    @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference
     private Order order;
 
     public OrderItem() {}
 
-    public OrderItem(Integer productId, Integer quantity, BigDecimal price) {
+    public OrderItem(Integer productId, Integer quantity) {
         this.productId = productId;
         this.quantity = quantity;
-        this.price = price;
     }
 
-    public BigDecimal CalculateItemTotal() {
+    public BigDecimal calculateItemTotal() {
         return getPrice().multiply(BigDecimal.valueOf(getQuantity()));
     }
 

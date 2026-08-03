@@ -5,11 +5,9 @@ services:
     image: postgres:15
     container_name: catalog_postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: your_password_here
-      POSTGRES_DB: catalog_db
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - microservices_net
 
@@ -17,13 +15,13 @@ services:
     build: .
     container_name: items_service
     ports:
-      - "8080:8080"
+      - "${APP_PORT}:8080"
     depends_on:
       - postgres-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/catalog_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=your_password_here
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       - microservices_net
 

@@ -108,6 +108,12 @@ graph TD
 
 ---
 
+## Future Improvements (Production Scalability)
+To keep this project simple, some trade-offs were made. In a real production system, I would add:
+*   **Asynchronous Messaging**: Use **Kafka** or **RabbitMQ** instead of direct HTTP calls, so the Order Service doesn't crash if the Catalog Service goes down.
+*   **Data Consistency**: Implement the **Saga Pattern** to handle rollbacks if one database fails mid-order (preventing stock deduction without a saved order).
+*   **API Security**: Secure internal service communication using **JWT tokens**.
+
 ## Quick Start
 
 Follow these steps to spin up both microservices and their databases with docker.
